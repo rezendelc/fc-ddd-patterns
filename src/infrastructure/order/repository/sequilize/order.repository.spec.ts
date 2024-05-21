@@ -175,24 +175,18 @@ describe("Order repository test", () => {
     const orderRepository = new OrderRepository();
     await orderRepository.create(order);
 
-    const foundOrder = await orderRepository.find(order.id);
+    const orderResult = await orderRepository.find(order.id);
 
-    expect(foundOrder.toJSON()).toStrictEqual({
-      id: "123",
-      customer_id: "123",
-      total: order.total(),
-      items: [
-        {
-          id: orderItem.id,
-          name: orderItem.name,
-          price: orderItem.price,
-          quantity: orderItem.quantity,
-          order_id: "123",
-          product_id: "123",
-        },
-      ],
-    });
+    expect(orderResult).toStrictEqual(order);
   })
+
+  it("should throw an error when order is not found", async () => {
+    const orderRepository = new OrderRepository();
+
+    expect(async () => {
+      await orderRepository.find("456ABC");
+    }).rejects.toThrow("Order not found");
+  });
 
   it("should find all orders", async() => {
     const customerRepository = new CustomerRepository();
@@ -231,39 +225,10 @@ describe("Order repository test", () => {
     await orderRepository.create(orderA);
     await orderRepository.create(orderB);
 
-    const foundOrders = await orderRepository.findAll();
+    const orderResult = await orderRepository.findAll();
 
-    expect(foundOrders.map(order => order.toJSON())).toStrictEqual([
-      {
-        id: "123",
-        customer_id: "123",
-        total: orderA.total(),
-        items: [
-          {
-            id: orderItemA.id,
-            name: orderItemA.name,
-            price: orderItemA.price,
-            quantity: orderItemA.quantity,
-            order_id: "123",
-            product_id: "123",
-          },
-        ],
-      },
-      {
-        id: "456",
-        customer_id: "123",
-        total: orderB.total(),
-        items: [
-          {
-            id: orderItemB.id,
-            name: orderItemB.name,
-            price: orderItemB.price,
-            quantity: orderItemB.quantity,
-            order_id: "456",
-            product_id: "321",
-          },
-        ],
-      }
-    ]);
+    expect(orderResult).toHaveLength(2);
+    expect(orderResult).toContainEqual(orderA);
+    expect(orderResult).toContainEqual(orderB);
   });
 });
